@@ -4,7 +4,9 @@
 
 ### Running the server
 
+```
 python2 server.py <ip-address> <port-no>
+```
 
 ### Running the client
 
