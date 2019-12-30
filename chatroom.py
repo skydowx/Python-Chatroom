@@ -8,11 +8,20 @@ import random
 import re
 from time import sleep
 
+"""
+Main Class that renders the GUI and handles the messaging logic
+
+"""
+
 class ChatroomWindow(QtWidgets.QMainWindow, Ui_ChatRoom):
 	def __init__(self):
+
+		# GUI Initialization
 		super().__init__()
 		self.setupUi(self)
 		self.show()
+
+		# Client data initialization
 		self.server = None
 		self.useralias = "Anon"
 		self.aliascolor = f"rgb({random.randint(0,255)}, {random.randint(0,255)}, {random.randint(0,255)})"	
@@ -22,15 +31,15 @@ class ChatroomWindow(QtWidgets.QMainWindow, Ui_ChatRoom):
 		self.disconnect.clicked.connect(self.disconnect_from_server)
 		self.send.clicked.connect(self.send_message)
 		self.setalias.clicked.connect(self.set_alias)
-		# self.actionExit.triggered.connect(self.exit_handler)
 
+		# Some QoL connections that'll trigger the respective function if 
+		# the user presses return in the respective text box
 		self.message.returnPressed.connect(self.send_message)
 		self.hostname.returnPressed.connect(self.connect_to_server)
 		self.port.returnPressed.connect(self.connect_to_server)
 		self.aliasinput.returnPressed.connect(self.set_alias)
 
-		# self.actionConnectServer.triggered.connect(self.connect_server_window)
-
+	# Connects the user to the server and starts the message receiving thread
 	def connect_to_server(self):
 
 		# If we're already connected to a server
@@ -72,6 +81,7 @@ class ChatroomWindow(QtWidgets.QMainWindow, Ui_ChatRoom):
 			self.server = None
 			self.messagedisplay.insertHtml(f"<div style='color: red'>Connection to the server failed. Is the server running?.<div>")
 
+	# Disconnect from the server
 	def disconnect_from_server(self):
 		
 		# If we're connected to a server
@@ -84,6 +94,7 @@ class ChatroomWindow(QtWidgets.QMainWindow, Ui_ChatRoom):
 		else:
 			self.messagedisplay.insertHtml(f"<div style='color: red'>You are not connected to any server.<div>")
 
+	# Used to send messages to the server
 	def send_message(self):
 		# self.messagedisplay.insertHtml("<div style='color: red'>Implement the message sending logic<div>")
 		if (self.server):
@@ -98,6 +109,7 @@ class ChatroomWindow(QtWidgets.QMainWindow, Ui_ChatRoom):
 		else:
 			self.messagedisplay.insertHtml(f"<div style='color: red'>You are not connected to any server.<div>")
 
+	# Used to receive messages from the server
 	def receive_message_thread(self):
 		while self.server:
 			try:
@@ -107,6 +119,7 @@ class ChatroomWindow(QtWidgets.QMainWindow, Ui_ChatRoom):
 			except Exception:
 				self.messagedisplay.insertHtml("<div style='color: red'>Unable to get data from the server.<div>")
 	
+	# Used to set alias
 	def set_alias(self):
 		# self.messagedisplay.insertHtml("<div style='color: red'>Implement the alias setting logic<div>")
 		newalias = self.aliasinput.text()
@@ -116,6 +129,5 @@ class ChatroomWindow(QtWidgets.QMainWindow, Ui_ChatRoom):
 		self.useralias = newalias
 		self.aliascolor = f"rgb({random.randint(0,255)}, {random.randint(0,255)}, {random.randint(0,255)})"
 
-	
 
 

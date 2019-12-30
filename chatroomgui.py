@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'chatroom.ui'
+# Omer: Automatically created GUI file by Qtcreator
 #
 # Created by: PyQt5 UI code generator 5.13.2
 #

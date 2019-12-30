@@ -14,7 +14,6 @@ def accept_incoming_connections():
 
 def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
-
     while True:
         try: 
             msg = client.recv(BUFSIZ)
@@ -23,8 +22,8 @@ def handle_client(client):  # Takes client socket as argument.
                 send_message(msg, client)
 
             else: 
-                """message may have no content if the connection 
-                is broken, in this case we remove the connection"""
+                # message may have no content if the connection 
+                # is broken, in this case we remove the connection
                 remove(client)
                 print("Removed a client")
 
@@ -34,21 +33,22 @@ def handle_client(client):  # Takes client socket as argument.
 
 def send_message(msg, connection):
     """Broadcasts a message to all the clients."""
-    for sock in clients:
-        if sock!=connection:
+    for client in clients:
+        if client!=connection:
             try:
-                sock.send(msg)
+                client.send(msg)
             except:
-                sock.close()
-
-                remove(sock)
+                # Close a broken connection
+                client.close()
+                remove(client)
 
 def remove(connection):
     clients.remove(connection)
 
 clients = []
 
-parser = argparse.ArgumentParser(description="Python-ChatServer")
+parser = argparse.ArgumentParser(description="Python-Chatroom")
+
 parser.add_argument(
     '--host',
     help='Host IP',
@@ -58,7 +58,7 @@ parser.add_argument(
 parser.add_argument(
     '--port',
     help='Port Number',
-    default=33002
+    default=8000
 )
 
 server_args = parser.parse_args()
