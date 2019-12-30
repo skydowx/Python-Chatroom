@@ -1,110 +1,88 @@
-# Python program to implement server side of chat room. 
-import socket 
-import select 
-import sys 
-from thread import *
+import argparse
+from socket import AF_INET, socket, SOCK_STREAM
+from threading import Thread
 
-"""The first argument AF_INET is the address domain of the 
-socket. This is used when we have an Internet Domain with 
-any two hosts The second argument is the type of socket. 
-SOCK_STREAM means that data or characters are read in 
-a continuous flow."""
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
 
-# checks whether sufficient arguments have been provided 
-if len(sys.argv) != 3: 
-	print "Correct usage: script, IP address, port number" 
-	exit() 
+def accept_incoming_connections():
+    """Sets up handling for incoming clients."""
+    while True:
+        client, client_address = SERVER.accept()
+        print("%s:%s has connected." % client_address)
+        clients.append(client)
+        Thread(target=handle_client, args=(client,)).start()
 
-# takes the first argument from command prompt as IP address 
-IP_address = str(sys.argv[1]) 
 
-# takes second argument from command prompt as port number 
-Port = int(sys.argv[2]) 
+def handle_client(client):  # Takes client socket as argument.
+    """Handles a single client connection."""
 
-""" 
-binds the server to an entered IP address and at the 
-specified port number. 
-The client must be aware of these parameters 
-"""
-server.bind((IP_address, Port)) 
+    while True:
+        try: 
+            msg = client.recv(BUFSIZ)
 
-""" 
-listens for 100 active connections. This number can be 
-increased as per convenience. 
-"""
-server.listen(100) 
+            if msg.decode():
+                send_message(msg, client)
 
-list_of_clients = [] 
+            else: 
+                """message may have no content if the connection 
+                is broken, in this case we remove the connection"""
+                remove(client)
+                print("Removed a client")
 
-def clientthread(conn, addr): 
+        except: 
+            continue
 
-	# sends a message to the client whose user object is conn 
-	conn.send("<div style='color: green'>Welcome to this chatroom!<div>".encode()) 
 
-	while True: 
-			try: 
-				message = conn.recv(2048) 
-				if message: 
+def send_message(msg, connection):
+    """Broadcasts a message to all the clients."""
+    for sock in clients:
+        if sock!=connection:
+            try:
+                sock.send(msg)
+            except:
+                sock.close()
 
-					"""prints the message and address of the 
-					user who just sent the message on the server 
-					terminal"""
-					print "<" + addr[0] + "> " + message 
+                remove(sock)
 
-					# Calls broadcast function to send message to all 
-					message_to_send = "<" + addr[0] + "> " + message 
-					broadcast(message_to_send, conn) 
+def remove(connection):
+    clients.remove(connection)
 
-				else: 
-					"""message may have no content if the connection 
-					is broken, in this case we remove the connection"""
-					remove(conn) 
+clients = []
 
-			except: 
-				continue
+parser = argparse.ArgumentParser(description="Python-ChatServer")
+parser.add_argument(
+    '--host',
+    help='Host IP',
+    default="127.0.0.1"
+)
 
-"""Using the below function, we broadcast the message to all 
-clients who's object is not the same as the one sending 
-the message """
-def broadcast(message, connection): 
-	for clients in list_of_clients: 
-		if clients!=connection: 
-			try: 
-				clients.send(message) 
-			except: 
-				clients.close() 
+parser.add_argument(
+    '--port',
+    help='Port Number',
+    default=33002
+)
 
-				# if the link is broken, we remove the client 
-				remove(clients) 
+server_args = parser.parse_args()
 
-"""The following function simply removes the object 
-from the list that was created at the beginning of 
-the program"""
-def remove(connection): 
-	if connection in list_of_clients: 
-		list_of_clients.remove(connection) 
 
-while True: 
+HOST = server_args.host
+PORT = int(server_args.port)
+BUFSIZ = 2048
+ADDR = (HOST, PORT)
 
-	"""Accepts a connection request and stores two parameters, 
-	conn which is a socket object for that user, and addr 
-	which contains the IP address of the client that just 
-	connected"""
-	conn, addr = server.accept() 
+stop_server = False
 
-	"""Maintains a list of clients for ease of broadcasting 
-	a message to all available people in the chatroom"""
-	list_of_clients.append(conn) 
+SERVER = socket(AF_INET, SOCK_STREAM)
+SERVER.bind(ADDR)
 
-	# prints the address of the user that just connected 
-	print addr[0] + " connected" 
-
-	# creates and individual thread for every user 
-	# that connects 
-	start_new_thread(clientthread,(conn,addr))	 
-
-conn.close() 
-server.close() 
-
+if __name__ == "__main__":
+    try:
+        SERVER.listen(5)
+        print("Server Started at {}:{}".format(HOST, PORT))
+        print("Waiting for connection...")
+        ACCEPT_THREAD = Thread(target=accept_incoming_connections)
+        ACCEPT_THREAD.start()
+        ACCEPT_THREAD.join()
+        SERVER.close()
+    except KeyboardInterrupt:
+        print("Closing...")
+        ACCEPT_THREAD.interrupt()

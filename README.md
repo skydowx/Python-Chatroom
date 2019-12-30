@@ -5,11 +5,11 @@
 ### Running the server
 
 ```
-python2 server.py <ip-address> <port-no>
+python3 server.py <ip-address> <port-no>
 ```
 
 ### Running the client
 
 ```
-python3 main.py
+python3 client.py
 ```
