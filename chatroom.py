@@ -1,6 +1,5 @@
 from PyQt5 import QtWidgets
 from chatroomgui import Ui_ChatRoom
-from connectserver import Ui_connectServer
 import threading
 import socket 
 import select 
